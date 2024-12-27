@@ -1,71 +1,37 @@
-name: Build macOS Electron App
+name: Build Electron App
 
 on:
   push:
     branches:
-      - main
+      - main  # Run the workflow on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Run on pull requests to the main branch
 
 jobs:
-  windows:
-    runs-on: windows-latest
+  build:
+    runs-on: windows-latest  # Use Windows for building
+
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm install
-      - name: Build Windows App
-        run: npx electron-builder --win
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npm run postinstall  # Rebuild native modules if needed
+
+      - name: Build Application
+        run: |
+          npm run package
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: WindowsApp
-          path: release/build
-  build-mac-x64:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build macOS App for Intel
-        run: npx electron-builder --mac --arch x64
-
-      - name: Upload Artifacts (Intel)
-        uses: actions/upload-artifact@v3
-        with:
-          name: macOS-Intel
-          path: release/build
-
-  build-mac-arm64:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build macOS App for ARM
-        run: npx electron-builder --mac --arch arm64
-
-      - name: Upload Artifacts (ARM)
-        uses: actions/upload-artifact@v3
-        with:
-          name: macOS-ARM
-          path: release/build
+          name: ElectronApp
+          path: release/build/
